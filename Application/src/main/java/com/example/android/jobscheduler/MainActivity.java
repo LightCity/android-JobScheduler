@@ -73,7 +73,7 @@ public class MainActivity extends Activity {
         mServiceComponent = new ComponentName(this, TestJobService.class);
         // Start service and provide it a way to communicate with us.
         Intent startServiceIntent = new Intent(this, TestJobService.class);
-        startServiceIntent.putExtra("messenger", new Messenger(mHandler));
+        startServiceIntent.putExtra("messenger", new Messenger(mHandler)); // 启动TestJobService的时候，TestJobService里头会把“自己”放到这里的“mTestService”对象，以保持通信。
         startService(startServiceIntent);
     }
     // UI fields.
@@ -128,8 +128,7 @@ public class MainActivity extends Activity {
 
     private boolean ensureTestService() {
         if (mTestService == null) {
-            Toast.makeText(MainActivity.this, "Service null, never got callback?",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Service null, never got callback?", Toast.LENGTH_SHORT).show();
             return false;
         }
         return true;
@@ -147,11 +146,11 @@ public class MainActivity extends Activity {
         JobInfo.Builder builder = new JobInfo.Builder(kJobId++, mServiceComponent);
 
         String delay = mDelayEditText.getText().toString();
-        if (delay != null && !TextUtils.isEmpty(delay)) {
+        if (!TextUtils.isEmpty(delay)) {
             builder.setMinimumLatency(Long.valueOf(delay) * 1000);
         }
         String deadline = mDeadlineEditText.getText().toString();
-        if (deadline != null && !TextUtils.isEmpty(deadline)) {
+        if (!TextUtils.isEmpty(deadline)) {
             builder.setOverrideDeadline(Long.valueOf(deadline) * 1000);
         }
         boolean requiresUnmetered = mWiFiConnectivityRadioButton.isChecked();
