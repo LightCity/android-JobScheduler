@@ -38,6 +38,8 @@ import android.widget.Toast;
 
 import com.example.android.jobscheduler.service.TestJobService;
 
+import java.lang.ref.WeakReference;
+
 public class MainActivity extends Activity {
 
     private static final String TAG = "MainActivity";
@@ -50,6 +52,9 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sample_main);
+
+        mHandler = new MyHandler(this);
+
         Resources res = getResources();
         defaultColor = res.getColor(R.color.none_received);
         startJobColor = res.getColor(R.color.start_received);
@@ -92,22 +97,34 @@ public class MainActivity extends Activity {
 
     private static int kJobId = 0;
 
-    Handler mHandler = new Handler(/* default looper */) {
+    static class MyHandler extends Handler {
+        WeakReference<MainActivity> ref;
+
+        MyHandler(MainActivity activity) {
+            ref = new WeakReference<>(activity);
+        }
+
         @Override
         public void handleMessage(Message msg) {
+            if (ref.get() == null) {
+                return;
+            }
+            MainActivity activity = ref.get();
             switch (msg.what) {
                 case MSG_UNCOLOUR_START:
-                    mShowStartView.setBackgroundColor(defaultColor);
+                    activity.mShowStartView.setBackgroundColor(activity.defaultColor);
                     break;
                 case MSG_UNCOLOUR_STOP:
-                    mShowStopView.setBackgroundColor(defaultColor);
+                    activity.mShowStopView.setBackgroundColor(activity.defaultColor);
                     break;
                 case MSG_SERVICE_OBJ:
-                    mTestService = (TestJobService) msg.obj;
-                    mTestService.setUiCallback(MainActivity.this);
+                    activity.mTestService = (TestJobService) msg.obj;
+                    activity.mTestService.setUiCallback(activity);
             }
         }
-    };
+    }
+
+    static Handler  mHandler;
 
     private boolean ensureTestService() {
         if (mTestService == null) {
